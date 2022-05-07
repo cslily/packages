@@ -8,18 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=perl-cgi
-PKG_VERSION:=4.38
-PKG_RELEASE:=1
+PKG_VERSION:=4.53
+PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_SOURCE_URL:=http://www.cpan.org/authors/id/L/LE/LEEJO
+PKG_SOURCE_URL:=https://www.cpan.org/authors/id/L/LE/LEEJO
 PKG_SOURCE:=CGI-$(PKG_VERSION).tar.gz
-PKG_HASH:=8c58f4a529bb92a914b22b7e64c5e31185c9854a4070a6dfad44fe5cc248e7d4
+PKG_HASH:=c67e732f3c96bcb505405fd944f131fe5c57b46e5d02885c00714c452bf14e60
+PKG_BUILD_DIR:=$(BUILD_DIR)/perl/CGI-$(PKG_VERSION)
 
-PKG_LICENSE:=GPL Artistic-2.0
 PKG_MAINTAINER:=Marcel Denia <naoir@gmx.net>, \
 		Philip Prindeville <philipp@redfish-solutions.com>
-
-PKG_BUILD_DIR:=$(BUILD_DIR)/perl/CGI-$(PKG_VERSION)
+PKG_LICENSE:=Artistic-2.0
+PKG_LICENSE_FILES:=LICENSE
 
 # don't strip comments because that will mangle this module
 PKG_LEAVE_COMMENTS:=1
@@ -32,7 +32,7 @@ define Package/perl-cgi
   SECTION:=lang
   CATEGORY:=Languages
   TITLE:=Handle Common Gateway Interface requests and responses
-  URL:=http://search.cpan.org/dist/CGI/
+  URL:=https://search.cpan.org/dist/CGI/
   DEPENDS:=perl +perl-html-parser +perlbase-base +perlbase-config +perlbase-encode +perlbase-essential +perlbase-file +perlbase-if +perlbase-utf8
 endef
 

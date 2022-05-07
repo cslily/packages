@@ -8,15 +8,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=diffutils
-PKG_VERSION:=3.6
-PKG_RELEASE:=1
+PKG_VERSION:=3.8
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@GNU/diffutils
-PKG_HASH:=d621e8bdd4b573918c8145f7ae61817d1be9deb4c8d2328a65cea8e11d783bd6
+PKG_HASH:=a6bdd7d1b31266d11c4f4de6c1b748d4607ab0231af5188fc2533d0ae2438fec
+
 PKG_MAINTAINER:=Roger D <rogerdammit@gmail.com>
 PKG_LICENSE:=GPL-3.0
+PKG_LICENSE_FILES:=COPYING
 
+PKG_BUILD_PARALLEL:=1
 PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
@@ -27,6 +30,9 @@ define Package/diffutils
   DEPENDS:=+USE_GLIBC:librt
   TITLE:=diffutils
   URL:=http://www.gnu.org/software/diffutils/
+  ALTERNATIVES:=\
+    200:/usr/bin/cmp:/usr/libexec/cmp-gnu \
+    200:/usr/bin/diff:/usr/libexec/diff-gnu
 endef
 
 define Package/diffutils/description
@@ -35,28 +41,15 @@ define Package/diffutils/description
 endef
 
 CONFIGURE_VARS += \
+	gl_cv_func_getopt_gnu=yes \
 	ac_cv_func_mempcpy=n
-TARGET_CFLAGS += --std=gnu99
 
 define Package/diffutils/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/{sdiff,diff3,diff,cmp} $(1)/usr/bin/
-endef
-
-define Package/diffutils/preinst
-#!/bin/sh
-for x in sdiff diff3 diff cmp; do
-  [ -L "$${IPKG_INSTROOT}/usr/bin/$$x" ] && rm -f "$${IPKG_INSTROOT}/usr/bin/$$x"
-done
-exit 0
-endef
-
-define Package/diffutils/postrm
-#!/bin/sh
-for x in sdiff diff3 diff cmp; do
-  /bin/busybox $$x -h 2>&1 | grep -q BusyBox && ln -sf ../../bin/busybox /usr/bin/$$x
-done
-exit 0
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/{sdiff,diff3} $(1)/usr/bin/
+	$(INSTALL_DIR) $(1)/usr/libexec
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/diff $(1)/usr/libexec/diff-gnu
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/cmp $(1)/usr/libexec/cmp-gnu
 endef
 
 $(eval $(call BuildPackage,diffutils))

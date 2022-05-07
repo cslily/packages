@@ -8,10 +8,10 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=tree
-PKG_RELEASE:=2
-PKG_VERSION:=1.7.0
-PKG_SOURCE_URL:=ftp://mama.indstate.edu/linux/tree/
-PKG_HASH:=6957c20e82561ac4231638996e74f4cfa4e6faabc5a2f511f0b4e3940e8f7b12
+PKG_RELEASE:=1
+PKG_VERSION:=2.0.2
+PKG_SOURCE_URL:=http://mama.indstate.edu/users/ice/tree/src
+PKG_HASH:=7d693a1d88d3c4e70a73e03b8dbbdc12c2945d482647494f2f5bd83a479eeeaf
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tgz
 PKG_MAINTAINER:=Banglang Huang <banglang.huang@foxmail.com>

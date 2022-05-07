@@ -8,18 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=moreutils
-PKG_VERSION:=0.60
-PKG_RELEASE:=1
+PKG_VERSION:=0.65
+PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).orig.tar.xz
-PKG_SOURCE_URL:=http://http.debian.net/debian/pool/main/m/moreutils/
-PKG_HASH:=e42d18bacbd2d003779a55fb3542befa5d1d217ee37c1874e8c497581ebc17c5
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://git.kitenet.net/index.cgi/moreutils.git/snapshot
+PKG_HASH:=60c9f6b55204e64cfcd12fd66e75cf7a061b6761f3d5b7797f2452cb17598881
 
 PKG_MAINTAINER:=Nikil Mehta <nikil.mehta@gmail.com>
-PKG_LICENSE:=GPL-2.0
+PKG_LICENSE:=GPL-2.0-or-later
 PKG_LICENSE_FILES:=COPYING
 
 PKG_INSTALL:=1
+PKG_BUILD_PARALLEL:=0
 
 include $(INCLUDE_DIR)/package.mk
 

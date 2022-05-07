@@ -8,14 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=net-snmp
-PKG_VERSION:=5.7.3
-PKG_RELEASE:=10
+PKG_VERSION:=5.9.1
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@SF/net-snmp
-PKG_HASH:=12ef89613c7707dc96d13335f153c1921efc9d61d3708ef09f3fc4a7014fb4f0
+PKG_HASH:=eb7fd4a44de6cddbffd9a92a85ad1309e5c1054fb9d5a7dd93079c8953f48c3f
 PKG_MAINTAINER:=Stijn Tintel <stijn@linux-ipv6.be>
 PKG_LICENSE:=MIT BSD-3-Clause-Clear
+PKG_CPE_ID:=cpe:/a:net-snmp:net-snmp
 
 PKG_FIXUP:=autoreconf
 
@@ -40,7 +41,7 @@ define Package/libnetsnmp
 $(call Package/net-snmp/Default)
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+libnl-tiny
+  DEPENDS:=+libnl-tiny +libpci +libpcre
   TITLE:=Open source SNMP implementation (libraries)
 endef
 
@@ -99,6 +100,7 @@ define Package/snmpd-static
 $(call Package/net-snmp/Default)
   DEPENDS:=+snmpd
   TITLE:=Open source SNMP implementation (daemon)
+  BUILDONLY:=1
 endef
 
 
@@ -128,6 +130,7 @@ SNMP_MIB_MODULES_INCLUDED = \
 	host/hr_system \
 	ieee802dot11 \
 	if-mib/ifXTable \
+	ip-mib/inetNetToMediaTable \
 	mibII/at \
 	mibII/icmp \
 	mibII/ifTable \
@@ -164,6 +167,7 @@ SNMP_MIB_MODULES_EXCLUDED = \
 	hardware \
 	host \
 	if-mib \
+	ip-mib \
 	mibII \
 	notification \
 	notification-log-mib \
@@ -206,6 +210,9 @@ CONFIGURE_ARGS += \
 	--without-zlib \
 	--with-nl \
 	 $(call autoconf_bool,CONFIG_IPV6,ipv6) \
+	--disable-perl-cc-checks \
+	--disable-embedded-perl \
+	--without-perl-modules
 
 CONFIGURE_VARS += \
 	ac_cv_header_netlink_netlink_h=yes \

@@ -8,30 +8,32 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=clamav
-PKG_VERSION:=0.100.0
-PKG_RELEASE:=1
-
-PKG_LICENSE:=GPL-2.0
-PKG_MAINTAINER:=Marko Ratkaj <marko.ratkaj@sartura.hr> \
-		Lucian Cristian <lucian.cristian@gmail.com>
+PKG_VERSION:=0.104.2
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://www.clamav.net/downloads/production/
-PKG_HASH:=c5c5edaf75a3c53ac0f271148fd6447310bce53f448ec7e6205124a25918f65c
+PKG_HASH:=3e45e46d9aaeb3a6956ed30376237ab7c4cd9573bc0f5d6fc15c588d30978d9d
 
-PKG_BUILD_PARALLEL:=1
-PKG_INSTALL:=1
+PKG_MAINTAINER:=Marko Ratkaj <markoratkaj@gmail.com> \
+		Lucian Cristian <lucian.cristian@gmail.com>
+PKG_LICENSE:=GPL-2.0-only
+PKG_LICENSE_FILES:=COPYING*
+PKG_CPE_ID:=cpe:/a:clamav:clamav
 
-include $(INCLUDE_DIR)/uclibc++.mk
+PKG_BUILD_DEPENDS:=ncurses
+
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/nls.mk
+include $(INCLUDE_DIR)/cmake.mk
 
 define Package/clamav/Default
   SECTION:=net
-  DEPENDS:=+libpthread +uclibcxx +zlib +libcurl +libjson-c +libopenssl +libltdl +libpcre2 +USE_MUSL:musl-fts
+  DEPENDS:=+check +libstdcpp +libpthread +zlib +libbz2 +libxml2 +libcurl +libjson-c +libmilter-sendmail +libopenssl +libltdl +libpcre2 $(ICONV_DEPENDS)
   CATEGORY:=Network
   SUBMENU:=Web Servers/Proxies
   TITLE:=ClamAV
-  URL:=http://www.clamav.net/
+  URL:=https://www.clamav.net/
 endef
 
 define Package/clamav
@@ -53,61 +55,61 @@ define Package/freshclam/description
  Database updater for ClamAV
 endef
 
+CMAKE_OPTIONS += \
+	-DENABLE_MILTER=ON \
+	-DHAVE_ATTRIB_PACKED=ON \
+	-DHAVE_ATTRIB_ALIGNED=ON \
+	-Dtest_run_result=ON \
+	-Dtest_run_result__TRYRUN_OUTPUT=ON \
+	-DCLAMAV_USER=nobody \
+	-DCLAMAV_GROUP=nogroup \
+	-DMMAP_FOR_CROSSCOMPILING=ON \
+	-DENABLE_CLAMONACC=ON \
+	-DENABLE_DOCS=OFF \
+	-DENABLE_DOXYGEN=OFF \
+	-DENABLE_EXAMPLES=OFF \
+	-DENABLE_UNRAR=OFF \
+	-DENABLE_SYSTEMD=OFF \
+	-DIconv_INCLUDE_DIR=$(ICONV_PREFIX)/include \
+	-DIconv_LIBRARY=$(ICONV_PREFIX)/lib/libiconv.$(if $(ICONV_FULL),so,a) \
+	-DHAVE_SYSTEM_LFS_FTS=O$(if $(CONFIG_USE_GLIBC),N,FF)
+
+TARGET_CXXFLAGS += -ffunction-sections -fdata-sections -fno-rtti -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed
+
 define Package/clamav/conffiles
-endef
-
-CONFIGURE_VARS += \
-	INCLUDES="" \
-	CXXFLAGS="$$$$CXXFLAGS -fno-rtti" \
-	$(if $(CONFIG_USE_MUSL),LIBS="-lpthread -lfts",LIBS="-lpthread") \
-
-define Build/Configure
-	$(call Build/Configure/Default, \
-		--sysconfdir=/etc/clamav/ \
-		--prefix=/usr/ \
-		--exec-prefix=/usr/ \
-		--disable-xml \
-		--disable-bzip2 \
-		--with-user nobody \
-		--with-group nogroup \
-		--with-pcre="$(STAGING_DIR)/usr/" \
-		--with-openssl="$(STAGING_DIR)/usr/" \
-		--with-zlib="$(STAGING_DIR)/usr/" \
-		--disable-zlib-vcheck \
-		--disable-clamdtop \
-	)
-endef
-
-define Build/Compile
-	$(MAKE) -C $(PKG_BUILD_DIR) \
-		DESTDIR="$(PKG_INSTALL_DIR)" \
-		all install
+/etc/config/clamav
+/etc/config/clamav-milter
 endef
 
 define Package/clamav/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/clamd $(1)/usr/sbin/
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/clamav-config $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/clamav-milter $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/clambc $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/clamconf $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/clamdscan $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/clamscan $(1)/usr/sbin/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/clamonacc $(1)/usr/sbin/
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/sigtool $(1)/usr/sbin/
 
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/clamav.h $(1)/usr/include/
-
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib*/* $(1)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib*/lib*.so.* $(1)/usr/lib/
 
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) ./files/clamav.config $(1)/etc/config/clamav
+	$(INSTALL_CONF) ./files/clamav-milter.config $(1)/etc/config/clamav-milter
 
 	$(INSTALL_DIR) $(1)/etc/init.d/
 	$(INSTALL_BIN) ./files/clamav.init $(1)/etc/init.d/clamav
+	$(INSTALL_BIN) ./files/clamav-milter.init $(1)/etc/init.d/clamav-milter
 
 	$(INSTALL_DIR) $(1)/usr/share/clamav
 	$(CP) ./files/bytecode.cvd $(1)/usr/share/clamav/
+endef
+
+define Package/freshclam/conffiles
+/etc/config/freshclam
 endef
 
 define Package/freshclam/install

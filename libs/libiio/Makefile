@@ -8,20 +8,17 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libiio
-PKG_VERSION:=0.14
-PKG_RELEASE:=2
+PKG_VERSION:=0.21
+PKG_RELEASE:=4
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/analogdevicesinc/libiio/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=12063db7a9366aa00bfd789db30afaddb29686bc29b3ce1e5d4adfe1c3b42527
+PKG_HASH:=03d13165cbeb83b036743cbd9a10e336c728da162714f39d13250a3d94305cac
 
 PKG_LICENSE:=LGPL-2.1
 PKG_LICENSE_FILES:=COPYING.txt
 
 PKG_MAINTAINER:=Michael Heimpold <mhei@heimpold.de>
-
-PKG_BUILD_PARALLEL:=1
-PKG_INSTALL:=1
 
 CMAKE_INSTALL:=1
 
@@ -33,6 +30,7 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_LIBIIO_XML_BACKEND
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/nls.mk
 include $(INCLUDE_DIR)/cmake.mk
 
 CMAKE_OPTIONS += -DWITH_DOC=OFF
@@ -52,9 +50,11 @@ define Package/libiio
   TITLE:=Library for interfacing with Linux IIO devices
   URL:=https://github.com/analogdevicesinc/libiio
   DEPENDS:=\
+           +zlib \
            +LIBIIO_USB_BACKEND:libusb-1.0 \
            +LIBIIO_NETWORK_BACKEND:libavahi-client \
-           +LIBIIO_XML_BACKEND:libxml2
+           +LIBIIO_XML_BACKEND:libxml2 \
+           $(ICONV_DEPENDS)
   MENU:=1
 endef
 
@@ -68,7 +68,7 @@ config LIBIIO_NETWORK_BACKEND
 	bool "Enable network backend"
 	depends on PACKAGE_libiio
 	select LIBIIO_XML_BACKEND
-	default n
+	default y
 
 config LIBIIO_USB_BACKEND
 	bool "Enable USB backend"
@@ -77,9 +77,9 @@ config LIBIIO_USB_BACKEND
 	default n
 
 config LIBIIO_XML_BACKEND
-	bool "Enable XML backend"
+	bool
 	depends on PACKAGE_libiio
-	default n
+	default y
 endef
 
 define Package/libiio/description
@@ -132,7 +132,7 @@ endef
 
 define Package/libiio/install
 	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libiio.so* $(1)/usr/lib/
+	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libiio.so.* $(1)/usr/lib/
 endef
 
 define Package/iiod/install

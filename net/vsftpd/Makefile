@@ -8,15 +8,16 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=vsftpd
-PKG_VERSION:=3.0.3
-PKG_RELEASE:=2
+PKG_VERSION:=3.0.4
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://security.appspot.com/downloads/
-PKG_HASH:=9d4d2bf6e6e2884852ba4e69e157a2cecd68c5a7635d66a3a8cf8d898c955ef7
-PKG_LICENSE:=GPLv2
+PKG_HASH:=6b9421bd27e8a6cdeed5b31154f294a20b003a11a26c09500715a0a6b1b86a26
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_MAINTAINER:=Cezary Jackiewicz <cezary@eko.one.pl>
+PKG_LICENSE:=GPLv2
+PKG_CPE_ID:=cpe:/a:beasts:vsftpd
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -26,7 +27,6 @@ define Package/vsftpd/Default
   CATEGORY:=Network
   TITLE:=Fast and secure FTP server
   URL:=https://security.appspot.com/vsftpd.html
-  MAINTAINER:=Cezary Jackiewicz <cezary@eko.one.pl>
 endef
 
 
@@ -51,6 +51,8 @@ endef
 Package/vsftpd-tls/conffiles=$(Package/vsftpd/conffiles)
 
 ifneq ($(CONFIG_USE_MUSL),)
+  NLSSTRING:=-lcrypt
+else ifneq ($(CONFIG_USE_GLIBC),)
   NLSSTRING:=-lcrypt
 else
   NLSSTRING:=-lcrypt -lnsl

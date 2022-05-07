@@ -8,18 +8,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sudo
-PKG_VERSION:=1.8.21p2
-PKG_RELEASE:=1
-PKG_LICENSE:=ISC
-PKG_LICENSE_FILES:=doc/LICENSE
+PKG_VERSION:=1.9.10
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://www.sudo.ws/dist
-PKG_HASH:=74c5746cd33a814e2431c39faf0d76f7f8a697379bd073862e3b156cf0d76368
+PKG_SOURCE_URL:=https://www.sudo.ws/dist
+PKG_HASH:=44a1461098e7c7b8e6ac597499c24fb2e43748c0c139a8b4944e57d1349a64f4
+
+PKG_MAINTAINER:=Alexandru Ardelean <ardeleanalex@gmail.com>
+
+PKG_LICENSE:=ISC
+PKG_LICENSE_FILES:=doc/LICENSE
+PKG_CPE_ID:=cpe:/a:todd_miller:sudo
 
 PKG_INSTALL:=1
-
-PKG_BUILD_DEPENDS:=sudo/host
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -27,8 +30,7 @@ define Package/sudo
   SECTION:=admin
   CATEGORY:=Administration
   TITLE:=Delegate authority to run commands
-  URL:=http://www.sudo.ws/
-  MAINTAINER:=Gergely Kiss <mail.gery@gmail.com>
+  URL:=https://www.sudo.ws/
 endef
 
 define Package/sudo/description
@@ -43,46 +45,32 @@ define Package/sudo/conffiles
 /etc/sudoers.d/
 endef
 
-CONFIGURE_ARGS+= \
+CONFIGURE_ARGS += \
 	--without-pam \
 	--disable-pam-session \
 	--with-editor=/bin/vi \
 	--without-lecture \
 	--disable-zlib \
+	--disable-openssl \
 	--with-rundir=/var/lib/sudo \
 	--with-vardir=/var/lib/sudo
 
-CONFIGURE_VARS+= \
+CONFIGURE_VARS += \
 	sudo_cv_uid_t_len=10 \
 	sudo_cv_func_unsetenv_void=no
 
-include $(INCLUDE_DIR)/host-build.mk
-
-define Host/Compile
-	cd $(HOST_BUILD_DIR)/lib/util; \
-	    $(MAKE) mksiglist; $(MAKE) mksigname
-endef
-
-define Host/Install
-	$(INSTALL_DIR) $(STAGING_DIR_HOSTPKG)/bin
-	$(CP) $(HOST_BUILD_DIR)/lib/util/mksig{list,name} $(STAGING_DIR_HOSTPKG)/bin/
-endef
-
-$(eval $(call HostBuild))
-
 define Package/sudo/install
-	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_DIR) \
+		$(1)/etc/{init.d,sudoers.d} \
+		$(1)/usr/{bin,sbin} \
+		$(1)/usr/lib/sudo
+
 	$(CP) $(PKG_INSTALL_DIR)/usr/bin/sudo $(1)/usr/bin/
 	chmod 4755 $(1)/usr/bin/sudo
-	$(INSTALL_DIR) $(1)/usr/sbin
 	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/visudo $(1)/usr/sbin/
-	$(INSTALL_DIR) $(1)/etc
 	$(CP) $(PKG_INSTALL_DIR)/etc/sudoers $(1)/etc/
 	chmod 0440 $(1)/etc/sudoers
-	$(INSTALL_DIR) $(1)/etc/sudoers.d
-	$(INSTALL_DIR) $(1)/usr/lib/sudo
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/sudo/*.so* $(1)/usr/lib/sudo/
-	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/sudo.init $(1)/etc/init.d/sudo
 endef
 

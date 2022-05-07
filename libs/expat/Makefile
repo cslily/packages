@@ -6,25 +6,23 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=expat
-PKG_VERSION:=2.2.5
-PKG_RELEASE:=1
+PKG_VERSION:=2.4.6
+PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@SF/expat
-PKG_HASH:=d9dc32efba7e74f788fcc4f212a43216fc37cf5f23f4c2339664d473353aedf6
-PKG_MAINTAINER:=Steven Barth <cyrus@openwrt.org>, \
-		Ted Hess <thess@kitschensync.net>
+PKG_HASH:=de55794b7a9bc214852fdc075beaaecd854efe1361597e6268ee87946951289b
 
+PKG_MAINTAINER:=Ted Hess <thess@kitschensync.net>
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:libexpat:expat
 
-PKG_FIXUP:=autoreconf
+CMAKE_INSTALL:=1
 
-PKG_INSTALL:=1
-PKG_BUILD_PARALLEL:=1
-
-include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
+include $(INCLUDE_DIR)/cmake.mk
 
 define Package/libexpat
   SECTION:=libs
@@ -37,26 +35,20 @@ define Package/libexpat/description
  A fast, non-validating, stream-oriented XML parsing library.
 endef
 
-TARGET_CFLAGS += $(FPIC)
+OPTIONS += \
+	-DDOCBOOK_TO_MAN=OFF \
+	-DEXPAT_BUILD_TOOLS=OFF \
+	-DEXPAT_BUILD_EXAMPLES=OFF \
+	-DEXPAT_BUILD_TESTS=OFF \
+	-DEXPAT_BUILD_DOCS=OFF \
+	-DEXPAT_WITH_LIBBSD=OFF \
+	-DEXPAT_ENABLE_INSTALL=ON \
+	-DEXPAT_DTD=OFF \
+	-DEXPAT_NS=OFF \
+	-DEXPAT_DEV_URANDOM=OFF
 
-CONFIGURE_ARGS += \
-	--enable-shared \
-	--enable-static
-
-define Host/Install
-	$(MAKE) -C $(HOST_BUILD_DIR) install
-endef
-
-define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/expat{,_external}.h $(1)/usr/include/
-
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/expat.pc $(1)/usr/lib/pkgconfig/
-
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libexpat.{a,so*} $(1)/usr/lib/
-endef
+ CMAKE_OPTIONS += $(OPTIONS)
+ CMAKE_HOST_OPTIONS += $(OPTIONS)
 
 define Package/libexpat/install
 	$(INSTALL_DIR) $(1)/usr/lib

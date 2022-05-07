@@ -8,18 +8,20 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=bash
-PKG_VERSION:=4.4.18
-PKG_RELEASE:=2
+PKG_VERSION:=5.1.16
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/bash
-PKG_HASH:=604d9eec5e4ed5fd2180ee44dd756ddca92e0b6aa4217bbab2b6227380317f23
+PKG_HASH:=5bac17218d3911834520dad13cd1f85ab944e1c09ae1aba55906be1f8192f558
 
-PKG_LICENSE:=GPL-3.0+
-PKG_LICENSE_FILES:=COPYING
 PKG_MAINTAINER:=Marcel Denia <naoir@gmx.net>
+PKG_LICENSE:=GPL-3.0-or-later
+PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:gnu:bash
 
 PKG_INSTALL:=1
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -36,6 +38,12 @@ define Package/bash/description
   Bash is an sh-compatible command language interpreter that executes
   commands read from the standard input or from a file. Bash also
   incorporates useful features from the Korn and C shells (ksh and csh).
+endef
+
+define Package/bash/conffiles
+/etc/bash.bashrc
+/etc/bash.bash_logout
+/etc/profile.d/sys_bashrc.sh
 endef
 
 # Bash detects and enables certain features by runtest simple piece of code
@@ -55,7 +63,7 @@ endef
 # bash_cv_sys_named_pipes: Required for process substituion
 CONFIGURE_VARS += \
 	ac_cv_rl_prefix="$(STAGING_DIR)/usr" \
-	ac_cv_rl_version="7.0" \
+	ac_cv_rl_version="8.0" \
 	bash_cv_getcwd_malloc=yes \
 	bash_cv_job_control_missing=present \
 	bash_cv_dev_fd=whacky \
@@ -67,11 +75,13 @@ CONFIGURE_VARS += \
 	bash_cv_printf_a_format=yes \
 
 CONFIGURE_ARGS+= \
-	--with-installed-readline="$(STAGING_DIR)/usr" \
 	--with-curses \
 	--without-bash-malloc \
 	--bindir=/bin \
 	--disable-rpath \
+	--enable-direxpand-default \
+	--enable-job-control \
+	--enable-readline
 
 define Package/bash/postinst
 #!/bin/sh
@@ -85,7 +95,7 @@ define Package/bash/install
 	$(INSTALL_DIR) $(1)/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/bin/bash $(1)/bin/
 	$(LN) bash $(1)/bin/rbash
+	$(CP) ./files/* $(1)/
 endef
-
 
 $(eval $(call BuildPackage,bash))
